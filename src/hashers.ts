@@ -3,6 +3,10 @@ import murmur from "murmurhash3js-revisited";
 
 import type { HashAlgorithm } from "./types.js";
 
+export const nativeAlgorithms = ["md5", "sha1", "sha256", "sha384", "sha512"] as const;
+
+const nativeAlgorithmSet = new Set<HashAlgorithm>(nativeAlgorithms);
+
 export function generateTranslationId(
   content: string,
   description: string,
@@ -11,8 +15,8 @@ export function generateTranslationId(
 ): string {
   const input = `${content}#${description}`;
 
-  if (algorithm === "sha512") {
-    const hash = createHash("sha512");
+  if (nativeAlgorithmSet.has(algorithm)) {
+    const hash = createHash(algorithm);
     hash.update(input);
     return hash.digest("base64").substring(0, length);
   }

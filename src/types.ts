@@ -1,4 +1,10 @@
-export type HashAlgorithm = "sha512" | "murmur3";
+export type HashAlgorithm =
+  | "md5"
+  | "sha1"
+  | "sha256"
+  | "sha384"
+  | "sha512"
+  | "murmur3";
 
 export interface ExperimentConfig {
   records: number;

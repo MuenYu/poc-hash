@@ -3,7 +3,14 @@ import { resolve } from "node:path";
 
 import { runExperiment } from "./experiment.js";
 import { toMarkdown } from "./format.js";
+import { nativeAlgorithms } from "./hashers.js";
 import type { ExperimentConfig, HashAlgorithm } from "./types.js";
+
+const supportedAlgorithms = [...nativeAlgorithms, "murmur3"] as const;
+
+function isHashAlgorithm(value: string): value is HashAlgorithm {
+  return (supportedAlgorithms as readonly string[]).includes(value);
+}
 
 function parseNumber(name: string, fallback: number): number {
   const arg = process.argv.find((item) => item.startsWith(`--${name}=`));
@@ -47,7 +54,7 @@ function parseAlgorithms(fallback: HashAlgorithm[]): HashAlgorithm[] {
     .split("=")[1]
     .split(",")
     .map((item) => item.trim())
-    .filter((item): item is HashAlgorithm => item === "sha512" || item === "murmur3");
+    .filter((item): item is HashAlgorithm => isHashAlgorithm(item));
 
   if (values.length === 0) {
     throw new Error(`Invalid --algorithms: ${arg}`);
@@ -60,7 +67,7 @@ async function main(): Promise<void> {
   const config: ExperimentConfig = {
     records: parseNumber("records", 300_000),
     lengths: parseLengths([8, 10, 12, 14]),
-    algorithms: parseAlgorithms(["sha512", "murmur3"]),
+    algorithms: parseAlgorithms(["md5", "sha1", "sha256", "sha512", "murmur3"]),
     seed: parseNumber("seed", 42),
   };
 

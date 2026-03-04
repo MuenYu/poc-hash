@@ -25,6 +25,16 @@ export function generateTranslationId(
 }
 ```
 
+### Variants: OpenSSL-backed hashes + BASE64 + substring
+
+- `md5`
+- `sha1`
+- `sha256`
+- `sha384`
+- `sha512`
+
+All of the above are generated with Node's `crypto.createHash(...)` (native/OpenSSL-backed).
+
 ### Variant: Murmurhash3 + BASE64 + substring
 ```ts
 export function generateTranslationId(
@@ -53,13 +63,13 @@ npm run experiment
 
 - `--records=<number>`: number of records to test
 - `--lengths=6,7,8,9,10`: base64 substring lengths
-- `--algorithms=sha512,murmur3`: algorithms to compare
+- `--algorithms=md5,sha1,sha256,sha384,sha512,murmur3`: algorithms to compare
 - `--seed=<number>`: deterministic synthetic data seed
 
 Example:
 
 ```bash
-npm run experiment -- --records=1000000 --lengths=6,7,8,9,10 --algorithms=sha512,murmur3 --seed=42
+npm run experiment -- --records=1000000 --lengths=6,7,8,9,10 --algorithms=md5,sha1,sha256,sha384,sha512,murmur3 --seed=42
 ```
 
 Outputs:
