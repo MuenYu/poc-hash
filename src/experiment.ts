@@ -12,14 +12,19 @@ function probabilityAtLeastOneCollision(records: number, length: number): number
   return 1 - Math.exp(-lambda);
 }
 
-function runSingle(config: ExperimentConfig, algorithm: ExperimentRow["algorithm"], length: number): ExperimentRow {
+function runSingle(
+  config: ExperimentConfig,
+  algorithm: ExperimentRow["algorithm"],
+  encoding: ExperimentRow["encoding"],
+  length: number,
+): ExperimentRow {
   const seen = new Set<string>();
   let collisions = 0;
 
   const started = process.hrtime.bigint();
   for (let i = 0; i < config.records; i += 1) {
     const { content, description } = syntheticRecordAt(i, config.seed);
-    const id = generateTranslationId(content, description, algorithm, length);
+    const id = generateTranslationId(content, description, algorithm, encoding, length);
 
     if (seen.has(id)) {
       collisions += 1;
@@ -34,6 +39,7 @@ function runSingle(config: ExperimentConfig, algorithm: ExperimentRow["algorithm
 
   return {
     algorithm,
+    encoding,
     length,
     records: config.records,
     unique,
@@ -50,8 +56,10 @@ export function runExperiment(config: ExperimentConfig): ExperimentRow[] {
   const rows: ExperimentRow[] = [];
 
   for (const algorithm of config.algorithms) {
-    for (const length of config.lengths) {
-      rows.push(runSingle(config, algorithm, length));
+    for (const encoding of config.encodings) {
+      for (const length of config.lengths) {
+        rows.push(runSingle(config, algorithm, encoding, length));
+      }
     }
   }
 

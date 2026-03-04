@@ -4,12 +4,17 @@ import { resolve } from "node:path";
 import { runExperiment } from "./experiment.js";
 import { toMarkdown } from "./format.js";
 import { nativeAlgorithms } from "./hashers.js";
-import type { ExperimentConfig, HashAlgorithm } from "./types.js";
+import type { ExperimentConfig, HashAlgorithm, HashEncoding } from "./types.js";
 
 const supportedAlgorithms = [...nativeAlgorithms, "murmur3"] as const;
+const supportedEncodings: HashEncoding[] = ["base64", "base64url"];
 
 function isHashAlgorithm(value: string): value is HashAlgorithm {
   return (supportedAlgorithms as readonly string[]).includes(value);
+}
+
+function isHashEncoding(value: string): value is HashEncoding {
+  return supportedEncodings.includes(value as HashEncoding);
 }
 
 function parseNumber(name: string, fallback: number): number {
@@ -63,11 +68,31 @@ function parseAlgorithms(fallback: HashAlgorithm[]): HashAlgorithm[] {
   return [...new Set(values)];
 }
 
+function parseEncodings(fallback: HashEncoding[]): HashEncoding[] {
+  const arg = process.argv.find((item) => item.startsWith("--encodings="));
+  if (!arg) {
+    return fallback;
+  }
+
+  const values = arg
+    .split("=")[1]
+    .split(",")
+    .map((item) => item.trim())
+    .filter((item): item is HashEncoding => isHashEncoding(item));
+
+  if (values.length === 0) {
+    throw new Error(`Invalid --encodings: ${arg}`);
+  }
+
+  return [...new Set(values)];
+}
+
 async function main(): Promise<void> {
   const config: ExperimentConfig = {
     records: parseNumber("records", 300_000),
-    lengths: parseLengths([8, 10, 12, 14]),
+    lengths: parseLengths([6, 7, 8, 9, 10, 11, 12, 13, 14]),
     algorithms: parseAlgorithms(["md5", "sha1", "sha256", "sha512", "murmur3"]),
+    encodings: parseEncodings(["base64", "base64url"]),
     seed: parseNumber("seed", 42),
   };
 

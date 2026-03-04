@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import murmur from "murmurhash3js-revisited";
 
-import type { HashAlgorithm } from "./types.js";
+import type { HashAlgorithm, HashEncoding } from "./types.js";
 
 export const nativeAlgorithms = ["md5", "sha1", "sha256", "sha384", "sha512"] as const;
 
@@ -11,6 +11,7 @@ export function generateTranslationId(
   content: string,
   description: string,
   algorithm: HashAlgorithm,
+  encoding: HashEncoding,
   length: number,
 ): string {
   const input = `${content}#${description}`;
@@ -18,10 +19,10 @@ export function generateTranslationId(
   if (nativeAlgorithmSet.has(algorithm)) {
     const hash = createHash(algorithm);
     hash.update(input);
-    return hash.digest("base64").substring(0, length);
+    return hash.digest(encoding).substring(0, length);
   }
 
   const murmurHex = murmur.x64.hash128(Buffer.from(input, "utf8"));
-  const digestBase64 = Buffer.from(murmurHex, "hex").toString("base64");
-  return digestBase64.substring(0, length);
+  const digest = Buffer.from(murmurHex, "hex").toString(encoding);
+  return digest.substring(0, length);
 }
